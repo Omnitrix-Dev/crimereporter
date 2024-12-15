@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
   varchar,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -30,14 +31,24 @@ export const posts = createTable(
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
+      () => new Date(),
     ),
   },
   (example) => ({
     createdByIdIdx: index("created_by_idx").on(example.createdById),
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
 );
+
+// enums
+// const roleEnum = pgEnum("role", ["ADMIN", "MODERATOR", "USER"]);
+// const reportTypeEnum = pgEnum("reportType", ["EMERGENCY", "NON_EMERGENCY"]);
+// const reportStatus = pgEnum("reportStatus", [
+//   "PENDING",
+//   "IN_PROGRESS",
+//   "RESOLVED",
+//   "DISMISSED",
+// ]);
 
 export const users = createTable("user", {
   id: varchar("id", { length: 255 })
@@ -50,6 +61,22 @@ export const users = createTable("user", {
     mode: "date",
     withTimezone: true,
   }).default(sql`CURRENT_TIMESTAMP`),
+  image: varchar("image", { length: 255 }),
+  // role: roleEnum("role").default("USER"),
+});
+
+export const reports = createTable("reports", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: varchar("description", { length: 255 }).notNull(),
+  // reportType: reportTypeEnum("reportType").notNull(),
+  location: varchar("location", { length: 255 }),
+  latitude: varchar("latitude", { length: 255 }),
+  longtitude: varchar("longtitude", { length: 255 }),
+  // status: reportStatus("status").default("PENDING"),
   image: varchar("image", { length: 255 }),
 });
 
@@ -83,7 +110,7 @@ export const accounts = createTable(
       columns: [account.provider, account.providerAccountId],
     }),
     userIdIdx: index("account_user_id_idx").on(account.userId),
-  })
+  }),
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -106,7 +133,7 @@ export const sessions = createTable(
   },
   (session) => ({
     userIdIdx: index("session_user_id_idx").on(session.userId),
-  })
+  }),
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -125,5 +152,5 @@ export const verificationTokens = createTable(
   },
   (vt) => ({
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  })
+  }),
 );
