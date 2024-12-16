@@ -1,11 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { cn } from "~/lib/utils";
+import { Textarea } from "~/components/ui/textarea";
+import { useState } from "react";
+import { api } from "~/trpc/react";
 import { z } from "zod";
 import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
 
 import {
   Form,
@@ -33,9 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { Textarea } from "~/components/ui/textarea";
-import { useState } from "react";
-import { api } from "~/trpc/react";
 
 const REPORT_TYPES = [
   "Theft",
@@ -59,11 +59,10 @@ const FormSchema = z.object({
 });
 
 export function ReportForm() {
+  const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [image, setImage] = useState("");
   const [isEmergency, setIsEmergency] = useState(false);
-
-  const isSubmitting = false;
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -73,9 +72,11 @@ export function ReportForm() {
     },
   });
 
-  const { mutate, isPending } = api.report.createReport.useMutation({
-    onSuccess: (r) => {
-      console.log(r);
+  const { mutate, isPending } = api.report.publicCreateReport.useMutation({
+    onSuccess: (res) => {
+      router.push(`/success/${res.r[0]!.id}`);
+      form.reset();
+      setImage("");
     },
   });
 
@@ -113,7 +114,13 @@ export function ReportForm() {
     }
   };
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {}
+  function onSubmit(data: z.infer<typeof FormSchema>) {
+    mutate({
+      title: data.report_title,
+      description: data.report_desc,
+      reportType: data.incident_type,
+    });
+  }
 
   return (
     <Form {...form}>

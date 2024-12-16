@@ -6,7 +6,8 @@ import CredentialProvider from "next-auth/providers/credentials";
 // @ts-expect-error: error external lib
 import bcrypt from "bcryptjs";
 
-import { eq } from "drizzle-orm";
+import { SQLWrapper, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import { db } from "~/server/db";
 import {
   accounts,
@@ -14,7 +15,6 @@ import {
   users,
   verificationTokens,
 } from "~/server/db/schema";
-import { TRPCError } from "@trpc/server";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -29,6 +29,7 @@ declare module "next-auth" {
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
+    current_user: any;
   }
 
   // interface User {
@@ -69,17 +70,12 @@ export const authConfig = {
           type: "email",
         },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<any> {
         try {
           const user = await db
             .select()
             .from(users)
-            .where(eq(users.email, credentials.email));
-
-          console.log("user db", user);
-
-          console.log("password credential/client", credentials.password);
-          console.log("password db", user[0]!.password);
+            .where(eq(users.email, credentials.email as string | SQLWrapper));
 
           if (
             !user[0] ||
@@ -123,16 +119,16 @@ export const authConfig = {
     //   },
     // }),
     session: async ({ session, token }) => {
-      const user = await db.select().from(users).where(eq(users.id, token.sub));
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, token.sub as string | SQLWrapper));
 
-      return {
-        ...session,
-        user: {
-          ...session.user,
-          id: user[0]!.id,
-          current_user: user[0]!,
-        },
-      };
+      if (token) {
+        session.user.id = token.sub as string;
+        session.current_user = user[0]!;
+      }
+      return session;
     },
   },
 } satisfies NextAuthConfig;

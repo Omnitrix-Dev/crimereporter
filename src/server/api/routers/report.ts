@@ -10,16 +10,26 @@ import {
 
 export const reportRouter = createTRPCRouter({
   publicCreateReport: publicProcedure
-    .input(z.object({ title: z.string(), description: z.string() }))
+    .input(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        reportType: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const r = await ctx.db.insert(reports).values({
-        title: input.title,
-        description: "This is a description",
-        reportType: "EMERGENCY",
-      });
+      const r = await ctx.db
+        .insert(reports)
+        .values({
+          title: input.title,
+          description: "This is a description",
+          reportType: input.reportType,
+        })
+        .returning({ id: reports.id });
 
       return {
         success: true,
+        r,
       };
     }),
 
