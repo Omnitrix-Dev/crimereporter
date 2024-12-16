@@ -1,5 +1,8 @@
 "use client";
 
+// @ts-expect-error
+import bcryptjs from "bcryptjs";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { api } from "~/trpc/react";
 
 const FormSchema = z.object({
   fullName: z.string().min(2, {
@@ -36,7 +40,21 @@ export function FormRegister() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {}
+  const { mutate } = api.auth.createUser.useMutation({
+    onSuccess: (r) => {
+      console.log(r);
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
+    const hashedPasssword = await bcryptjs.hash(values.password, 12);
+
+    mutate({
+      name: values.fullName,
+      email: values.email,
+      password: hashedPasssword,
+    });
+  }
 
   return (
     <Form {...form}>

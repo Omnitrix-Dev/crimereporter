@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS "crimereporter_user" (
 	"name" varchar(255),
 	"email" varchar(255) NOT NULL,
 	"email_verified" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-	"image" varchar(255)
+	"image" varchar(255),
+	"password" varchar(255)
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "crimereporter_verification_token" (
@@ -73,4 +74,5 @@ END $$;
 CREATE INDEX IF NOT EXISTS "account_user_id_idx" ON "crimereporter_account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "created_by_idx" ON "crimereporter_post" USING btree ("created_by");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "name_idx" ON "crimereporter_post" USING btree ("name");--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "session_user_id_idx" ON "crimereporter_session" USING btree ("user_id");
+CREATE INDEX IF NOT EXISTS "session_user_id_idx" ON "crimereporter_session" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "emailUniqueIndex" ON "crimereporter_user" USING btree (lower("email"));

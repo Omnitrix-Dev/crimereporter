@@ -1,7 +1,12 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-import DiscordProvider from "next-auth/providers/discord";
 
+import DiscordProvider from "next-auth/providers/discord";
+import CredentialProvider from "next-auth/providers/credentials";
+// @ts-expect-error: error external lib
+import bcrypt from "bcryptjs";
+
+import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import {
   accounts,
@@ -9,6 +14,7 @@ import {
   users,
   verificationTokens,
 } from "~/server/db/schema";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -37,8 +43,61 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  pages: {
+    signIn: "/login",
+  },
   providers: [
     DiscordProvider,
+    CredentialProvider({
+      id: "credentials",
+      name: "Login with email",
+      credentials: {
+        name: {
+          label: "Username",
+          type: "text",
+        },
+        password: {
+          label: "Password",
+          type: "password",
+        },
+        email: {
+          label: "Email",
+          type: "email",
+        },
+      },
+      async authorize(credentials) {
+        try {
+          const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, credentials.email));
+
+          console.log("user db", user);
+
+          console.log("password credential/client", credentials.password);
+          console.log("password db", user[0]!.password);
+
+          if (
+            !user[0] ||
+            !bcrypt.compareSync(credentials.password, user[0].password)
+          ) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
+
+          return {
+            id: user[0]!.id,
+            name: user[0]!.name,
+            email: user[0]!.email,
+          };
+        } catch (error) {
+          console.log(error);
+        }
+      },
+    }),
     /**
      * ...add more providers here.
      *
@@ -56,12 +115,24 @@ export const authConfig = {
     verificationTokensTable: verificationTokens,
   }),
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    // session: ({ session, user }) => ({
+    //   ...session,
+    //   user: {
+    //     ...session.user,
+    //     id: user.id,
+    //   },
+    // }),
+    session: async ({ session, token }) => {
+      const user = await db.select().from(users).where(eq(users.id, token.sub));
+
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user[0]!.id,
+          current_user: user[0]!,
+        },
+      };
+    },
   },
 } satisfies NextAuthConfig;

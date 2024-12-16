@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { SQL, relations, sql } from "drizzle-orm";
 import {
   index,
   integer,
@@ -8,6 +8,8 @@ import {
   timestamp,
   varchar,
   pgEnum,
+  uniqueIndex,
+  AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -50,20 +52,32 @@ export const posts = createTable(
 //   "DISMISSED",
 // ]);
 
-export const users = createTable("user", {
-  id: varchar("id", { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
-  emailVerified: timestamp("email_verified", {
-    mode: "date",
-    withTimezone: true,
-  }).default(sql`CURRENT_TIMESTAMP`),
-  image: varchar("image", { length: 255 }),
-  // role: roleEnum("role").default("USER"),
-});
+// custom lower function
+export function lower(email: AnyPgColumn): SQL {
+  return sql`lower(${email})`;
+}
+
+export const users = createTable(
+  "user",
+  {
+    id: varchar("id", { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: varchar("name", { length: 255 }),
+    email: varchar("email", { length: 255 }).notNull(),
+    emailVerified: timestamp("email_verified", {
+      mode: "date",
+      withTimezone: true,
+    }).default(sql`CURRENT_TIMESTAMP`),
+    image: varchar("image", { length: 255 }),
+    password: varchar("password", { length: 255 }),
+    // role: roleEnum("role").default("USER"),
+  },
+  (table) => ({
+    emailUniqueIndex: uniqueIndex("emailUniqueIndex").on(lower(table.email)),
+  }),
+);
 
 export const reports = createTable("reports", {
   id: varchar("id", { length: 255 })
