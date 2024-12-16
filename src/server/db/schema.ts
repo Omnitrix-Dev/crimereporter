@@ -42,16 +42,6 @@ export const posts = createTable(
   }),
 );
 
-// enums
-// const roleEnum = pgEnum("role", ["ADMIN", "MODERATOR", "USER"]);
-// const reportTypeEnum = pgEnum("reportType", ["EMERGENCY", "NON_EMERGENCY"]);
-// const reportStatus = pgEnum("reportStatus", [
-//   "PENDING",
-//   "IN_PROGRESS",
-//   "RESOLVED",
-//   "DISMISSED",
-// ]);
-
 // custom lower function
 export function lower(email: AnyPgColumn): SQL {
   return sql`lower(${email})`;
@@ -72,7 +62,7 @@ export const users = createTable(
     }).default(sql`CURRENT_TIMESTAMP`),
     image: varchar("image", { length: 255 }),
     password: varchar("password", { length: 255 }),
-    // role: roleEnum("role").default("USER"),
+    role: varchar("role", { length: 255 }),
   },
   (table) => ({
     emailUniqueIndex: uniqueIndex("emailUniqueIndex").on(lower(table.email)),
@@ -86,11 +76,11 @@ export const reports = createTable("reports", {
     .$defaultFn(() => crypto.randomUUID()),
   title: varchar("title", { length: 255 }).notNull(),
   description: varchar("description", { length: 255 }).notNull(),
-  // reportType: reportTypeEnum("reportType").notNull(),
+  reportType: varchar("reportType", { length: 255 }).notNull(),
   location: varchar("location", { length: 255 }),
   latitude: varchar("latitude", { length: 255 }),
   longtitude: varchar("longtitude", { length: 255 }),
-  // status: reportStatus("status").default("PENDING"),
+  status: varchar("status", { length: 255 }).default("PENDING"),
   image: varchar("image", { length: 255 }),
 });
 

@@ -1,4 +1,4 @@
-// import { ReportWizard } from "@/components/report/ReportWizard";
+import { ReportWizard } from "../_components/reports/ReportWizard";
 
 export default function SubmitReport() {
   return (
@@ -40,7 +40,7 @@ export default function SubmitReport() {
           </div>
 
           <div className="mt-16 rounded-2xl border border-white/5 bg-zinc-900/50 p-6">
-            {/* <ReportWizard /> */}
+            <ReportWizard />
           </div>
         </div>
       </main>

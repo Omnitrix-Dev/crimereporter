@@ -25,9 +25,11 @@ CREATE TABLE IF NOT EXISTS "crimereporter_reports" (
 	"id" varchar(255) PRIMARY KEY NOT NULL,
 	"title" varchar(255) NOT NULL,
 	"description" varchar(255) NOT NULL,
+	"reportType" varchar(255) NOT NULL,
 	"location" varchar(255),
 	"latitude" varchar(255),
 	"longtitude" varchar(255),
+	"status" varchar(255) DEFAULT 'PENDING',
 	"image" varchar(255)
 );
 --> statement-breakpoint
@@ -43,7 +45,8 @@ CREATE TABLE IF NOT EXISTS "crimereporter_user" (
 	"email" varchar(255) NOT NULL,
 	"email_verified" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
 	"image" varchar(255),
-	"password" varchar(255)
+	"password" varchar(255),
+	"role" varchar(255)
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "crimereporter_verification_token" (
