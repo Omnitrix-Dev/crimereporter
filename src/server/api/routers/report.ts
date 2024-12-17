@@ -46,4 +46,15 @@ export const reportRouter = createTRPCRouter({
         success: true,
       };
     }),
+
+  trackReport: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const report = await ctx.db.query.reports.findFirst({
+        where: eq(reports.id, input.id),
+      });
+
+      if (!report) return null;
+      return report;
+    }),
 });

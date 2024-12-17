@@ -82,6 +82,7 @@ export const reports = createTable("reports", {
   longtitude: varchar("longtitude", { length: 255 }),
   status: varchar("status", { length: 255 }).default("PENDING"),
   image: varchar("image", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

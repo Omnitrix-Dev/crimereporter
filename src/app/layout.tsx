@@ -3,6 +3,7 @@ import "~/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "~/components/ThemeProvider";
 import { Navbar } from "~/components/Navbar";
@@ -30,14 +31,16 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="relative min-h-screen bg-black selection:bg-sky-500/20">
-              <div className="fixed inset-0 -z-10 min-h-screen">
-                <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.03),transparent_50%)]" />
-                <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_70%)]" />
+            <NuqsAdapter>
+              <div className="relative min-h-screen bg-black selection:bg-sky-500/20">
+                <div className="fixed inset-0 -z-10 min-h-screen">
+                  <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.03),transparent_50%)]" />
+                  <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.04),transparent_70%)]" />
+                </div>
+                <Navbar />
+                <main className="pt-16">{children}</main>
               </div>
-              <Navbar />
-              <main className="pt-16">{children}</main>
-            </div>
+            </NuqsAdapter>
           </ThemeProvider>
         </TRPCReactProvider>
       </body>

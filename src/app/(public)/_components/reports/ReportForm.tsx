@@ -74,7 +74,7 @@ export function ReportForm() {
 
   const { mutate, isPending } = api.report.publicCreateReport.useMutation({
     onSuccess: (res) => {
-      router.push(`/success/${res.r[0]!.id}`);
+      router.push(`/track-report/success/${res.r[0]!.id}`);
       form.reset();
       setImage("");
     },
