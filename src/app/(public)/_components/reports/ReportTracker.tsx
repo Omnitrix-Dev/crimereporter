@@ -37,8 +37,9 @@ export function ReportTracker({ initialId }: { initialId?: string }) {
   return (
     <section className="flex flex-col gap-6">
       <Input
+        placeholder="Enter your track ID"
         onChange={(e) => debouncedSetQ(setQ, e.target.value)}
-        className="w-full rounded-xl border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
+        className="mx-auto w-full rounded-xl border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 sm:max-w-[400px]"
       />
       <div
         className={cn("transition-all duration-300", {

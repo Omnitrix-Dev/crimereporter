@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { api } from "~/trpc/react";
 import {
   Select,
   SelectContent,
@@ -10,20 +13,38 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
-export function UpdateReportStatus() {
+export function UpdateReportStatus({ id }: { id: string }) {
+  const router = useRouter();
+
+  const { mutate } = api.report.updateReport.useMutation({
+    onSuccess: (r) => {
+      toast.success("Report status updated successfully");
+      router.refresh();
+    },
+    onError: (e) => {
+      console.log(e);
+    },
+  });
+
   return (
-    <Select>
+    <Select
+      onValueChange={(val) =>
+        mutate({
+          id,
+          status: val,
+        })
+      }
+    >
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Update" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>Fruits</SelectLabel>
-          <SelectItem value="apple">Apple</SelectItem>
-          <SelectItem value="banana">Banana</SelectItem>
-          <SelectItem value="blueberry">Blueberry</SelectItem>
-          <SelectItem value="grapes">Grapes</SelectItem>
-          <SelectItem value="pineapple">Pineapple</SelectItem>
+          <SelectLabel>Update Status</SelectLabel>
+          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+          <SelectItem value="RESOLVED">Resolved</SelectItem>
+          <SelectItem value="PENDING">Pending</SelectItem>
+          <SelectItem value="DISMISSED">Dismissed</SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>

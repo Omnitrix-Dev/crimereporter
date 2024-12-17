@@ -9,12 +9,19 @@ import {
 } from "~/server/api/trpc";
 
 export const reportRouter = createTRPCRouter({
+  getAllReports: protectedProcedure.query(async ({ ctx }) => {
+    const reports = await ctx.db.query.reports.findMany();
+    return reports;
+  }),
+
   publicCreateReport: publicProcedure
     .input(
       z.object({
         title: z.string(),
         description: z.string(),
         reportType: z.string(),
+        location: z.string(),
+        image: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -24,6 +31,8 @@ export const reportRouter = createTRPCRouter({
           title: input.title,
           description: input.description,
           reportType: input.reportType,
+          location: input.location,
+          image: input.image,
         })
         .returning({ id: reports.customId });
 
@@ -55,6 +64,18 @@ export const reportRouter = createTRPCRouter({
       });
 
       if (!report) return null;
+      return report;
+    }),
+
+  updateReport: protectedProcedure
+    .input(z.object({ id: z.string(), status: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const report = await ctx.db
+        .update(reports)
+        .set({ status: input.status })
+        .where(eq(reports.customId, input.id))
+        .returning({ id: reports.customId });
+
       return report;
     }),
 });

@@ -56,6 +56,10 @@ const FormSchema = z.object({
     message: "Report description must be at least 2 characters.",
   }),
   incident_type: z.enum(REPORT_TYPES),
+  location: z.string().min(2, {
+    message: "Location must be at least 2 characters.",
+  }),
+  image: z.string().optional(),
 });
 
 export function ReportForm() {
@@ -69,6 +73,7 @@ export function ReportForm() {
     defaultValues: {
       report_title: "",
       report_desc: "",
+      location: "",
     },
   });
 
@@ -119,6 +124,8 @@ export function ReportForm() {
       title: data.report_title,
       description: data.report_desc,
       reportType: data.incident_type,
+      location: data.location,
+      image,
     });
   }
 
@@ -225,7 +232,7 @@ export function ReportForm() {
                 >
                   <FormControl>
                     <SelectTrigger className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40">
-                      <SelectValue placeholder="Select a verified report to display" />
+                      <SelectValue placeholder="Select a listed report" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -268,6 +275,29 @@ export function ReportForm() {
         <div>
           <FormField
             control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="mb-2 block text-sm font-medium text-zinc-400">
+                  Location
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    disabled={isPending || isAnalyzing}
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
+                    placeholder="North Carolina"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div>
+          <FormField
+            control={form.control}
             name="report_desc"
             render={({ field }) => (
               <FormItem>
@@ -278,7 +308,7 @@ export function ReportForm() {
                   <Textarea
                     disabled={isPending || isAnalyzing}
                     className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
-                    placeholder="Tell us a little bit about yourself"
+                    placeholder="Please provide a description of the incident."
                     {...field}
                   />
                 </FormControl>

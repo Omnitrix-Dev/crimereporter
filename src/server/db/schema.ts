@@ -79,7 +79,7 @@ export const reports = createTable("reports", {
   latitude: varchar("latitude", { length: 255 }),
   longtitude: varchar("longtitude", { length: 255 }),
   status: varchar("status", { length: 255 }).default("PENDING"),
-  image: varchar("image", { length: 255 }),
+  image: varchar("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
