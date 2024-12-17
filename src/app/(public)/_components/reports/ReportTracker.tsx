@@ -68,7 +68,9 @@ export function ReportTracker({ initialId }: { initialId?: string }) {
 
               <div className="flex items-center justify-between rounded-lg bg-white/5 p-3">
                 <span className="text-zinc-400">Report ID</span>
-                <span className="font-mono text-white">{data?.id ?? ""}</span>
+                <span className="font-mono text-white">
+                  {data?.customId ?? ""}
+                </span>
               </div>
 
               <div className="flex items-center justify-between rounded-lg bg-white/5 p-3">

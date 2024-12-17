@@ -1,223 +1,220 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Search, Loader } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { Report, ReportStatus, ReportType } from "@prisma/client";
+import { signOut } from "next-auth/react";
 
-interface ReportDetails {
-  id: string;
-  reportId: string;
-  status: string;
-  createdAt: string;
-  title: string;
-  description: string;
-  location: string;
-}
+export default function Dashboard() {
+  const { data: session } = useSession();
+  const [reports, setReports] = useState<Report[]>([]);
+  const [filter, setFilter] = useState<ReportStatus | "ALL">("ALL");
+  const [typeFilter, setTypeFilter] = useState<ReportType | "ALL">("ALL");
+  const [isLoading, setIsLoading] = useState(true);
 
-export function ReportTracker() {
-  const [reportId, setReportId] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [reportDetails, setReportDetails] = useState<ReportDetails | null>(
-    null,
-  );
-  const router = useRouter();
+  useEffect(() => {
+    fetchReports();
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setReportDetails(null);
-    setLoading(true);
-
-    if (!reportId.trim()) {
-      setError("Please enter a report ID");
-      setLoading(false);
-      return;
-    }
-
+  const fetchReports = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`/api/reports/${reportId}/details`);
-      if (!response.ok) {
-        throw new Error("Report not found");
-      }
+      const response = await fetch("/api/reports");
       const data = await response.json();
-      setReportDetails(data);
-    } catch (err) {
-      setError("Unable to find report. Please check the ID and try again.");
+      setReports(data);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+
+  const updateReportStatus = async (
+    reportId: string,
+    newStatus: ReportStatus,
+  ) => {
+    try {
+      const response = await fetch(`/api/reports/${reportId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        fetchReports();
+      }
+    } catch (error) {
+      console.error("Error updating report:", error);
+    }
+  };
+
+  const filteredReports = reports.filter((report) => {
+    const statusMatch = filter === "ALL" || report.status === filter;
+    const typeMatch = typeFilter === "ALL" || report.type === typeFilter;
+    return statusMatch && typeMatch;
+  });
+
+  const getStatusColor = (status: ReportStatus) => {
+    const colors = {
+      PENDING: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
+      IN_PROGRESS: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
+      RESOLVED: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
+      DISMISSED:
+        "bg-neutral-500/10 text-neutral-400 border border-neutral-500/20",
+    };
+    return colors[status];
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full">
-      {/* Header Section */}
-      <div className="mb-8 text-center">
-        <div className="inline-flex h-9 items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-4 text-sm text-sky-400">
-          <Search className="h-4 w-4" />
-          Track Your Report Status
-        </div>
-        <h1 className="mt-6 bg-gradient-to-b from-white to-white/80 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
-          Track Your Report
-          <span className="block bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-transparent">
-            Stay Informed
-          </span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-zinc-400">
-          Enter your report ID to check the current status and updates
-        </p>
-      </div>
-
-      {/* Dynamic Layout Container */}
-      <div className="flex justify-center">
-        <div
-          className={`transition-all duration-300 ease-in-out ${
-            reportDetails
-              ? "grid w-full gap-8 md:grid-cols-2"
-              : "w-full max-w-lg"
-          }`}
-        >
-          {/* Form Section */}
-          <div
-            className={`w-full rounded-2xl border border-white/5 bg-zinc-900/50 p-6 backdrop-blur-xl transition-all duration-300 ${reportDetails ? "" : "mx-auto"}`}
-          >
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="relative">
-                <label
-                  htmlFor="reportId"
-                  className="mb-2 block text-sm font-medium text-zinc-400"
-                >
-                  Report ID
-                </label>
-                <input
-                  type="text"
-                  id="reportId"
-                  value={reportId}
-                  onChange={(e) => setReportId(e.target.value)}
-                  className="w-full rounded-xl border border-white/5 bg-black/50 px-4 py-3 text-white placeholder-zinc-500 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-500/50"
-                  placeholder="Enter your report ID"
-                  disabled={loading}
-                />
-              </div>
-
-              {error && (
-                <div className="flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
-                  <svg
-                    className="h-5 w-5 flex-shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  {error}
-                </div>
-              )}
-
+    <div className="min-h-screen bg-black text-white">
+      <nav className="sticky top-0 z-50 border-b border-neutral-800 bg-black/50 backdrop-blur-xl">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <h1 className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-2xl font-bold text-transparent">
+              Admin Dashboard
+            </h1>
+            <div className="flex items-center gap-6">
+              <span className="text-neutral-400">
+                {session?.user?.name || "Admin"}
+              </span>
               <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full items-center justify-center space-x-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-3 text-white transition-all duration-200 hover:from-sky-400 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => signOut()}
+                className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-300 transition-all hover:border-neutral-700 hover:bg-neutral-800"
               >
-                {loading ? (
-                  <Loader className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Search className="h-5 w-5" />
-                )}
-                <span>{loading ? "Searching..." : "Track Report"}</span>
+                Sign out
               </button>
-            </form>
-          </div>
-
-          {/* Results Section */}
-          <div
-            className={`transition-all duration-300 ${
-              reportDetails
-                ? "translate-x-0 opacity-100"
-                : "absolute translate-x-8 opacity-0"
-            }`}
-          >
-            {reportDetails && (
-              <div className="h-full rounded-xl border border-white/5 bg-black/30 p-6 backdrop-blur-xl">
-                <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold text-white">
-                  <div className="h-2 w-2 rounded-full bg-sky-400" />
-                  Report Details
-                </h2>
-
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between rounded-lg bg-white/5 p-3">
-                    <span className="text-zinc-400">Status</span>
-                    <span
-                      className={`font-medium ${getStatusColor(
-                        reportDetails.status,
-                      )} rounded-full bg-white/5 px-3 py-1`}
-                    >
-                      {reportDetails.status.toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-lg bg-white/5 p-3">
-                    <span className="text-zinc-400">Report ID</span>
-                    <span className="font-mono text-white">
-                      {reportDetails.reportId || reportDetails.id}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-lg bg-white/5 p-3">
-                    <span className="text-zinc-400">Submitted On</span>
-                    <span className="text-white">
-                      {new Date(reportDetails.createdAt).toLocaleDateString(
-                        undefined,
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        },
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5 rounded-lg bg-white/5 p-3">
-                    <span className="text-sm text-zinc-400">Title</span>
-                    <span className="block font-medium text-white">
-                      {reportDetails.title}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5 rounded-lg bg-white/5 p-3">
-                    <span className="text-sm text-zinc-400">Location</span>
-                    <span className="block font-medium text-white">
-                      {reportDetails.location}
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5 rounded-lg bg-white/5 p-3">
-                    <span className="text-sm text-zinc-400">Description</span>
-                    <p className="text-sm leading-relaxed text-white">
-                      {reportDetails.description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
+
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex gap-4">
+            <select
+              value={filter}
+              onChange={(e) =>
+                setFilter(e.target.value as ReportStatus | "ALL")
+              }
+              className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2 text-neutral-300 focus:border-blue-500/20 focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="ALL">All Statuses</option>
+              {Object.values(ReportStatus).map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={typeFilter}
+              onChange={(e) =>
+                setTypeFilter(e.target.value as ReportType | "ALL")
+              }
+              className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2 text-neutral-300 focus:border-blue-500/20 focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="ALL">All Types</option>
+              {Object.values(ReportType).map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-neutral-400">
+            {filteredReports.length} Reports
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          {filteredReports.map((report) => (
+            <div
+              key={report.id}
+              className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 backdrop-blur-sm transition-all hover:border-neutral-700"
+            >
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-medium text-neutral-200">
+                      {report.title}
+                    </h2>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(
+                        report.status,
+                      )}`}
+                    >
+                      {report.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-neutral-400">
+                    {report.description}
+                  </p>
+                  <div className="flex flex-wrap gap-6 text-sm text-neutral-500">
+                    <span className="flex items-center gap-2">
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800">
+                        <div className="h-2 w-2 rounded-full bg-neutral-600"></div>
+                      </div>
+                      {report.type}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800">
+                        <div className="h-2 w-2 rounded-full bg-neutral-600"></div>
+                      </div>
+                      {report.location || "N/A"}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-800">
+                        <div className="h-2 w-2 rounded-full bg-neutral-600"></div>
+                      </div>
+                      {new Date(report.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {report.image && (
+                    <img
+                      src={report.image}
+                      alt="Report"
+                      className="mt-4 rounded-lg border border-neutral-800"
+                    />
+                  )}
+                </div>
+                <select
+                  value={report.status}
+                  onChange={(e) =>
+                    updateReportStatus(
+                      report.id,
+                      e.target.value as ReportStatus,
+                    )
+                  }
+                  className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-2 text-neutral-300 focus:border-blue-500/20 focus:ring-2 focus:ring-blue-500/20"
+                >
+                  {Object.values(ReportStatus).map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ))}
+
+          {filteredReports.length === 0 && (
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 py-12 text-center text-neutral-500">
+              No reports found matching the selected filters.
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
-}
-
-function getStatusColor(status: string): string {
-  const statusColors: Record<string, string> = {
-    pending: "text-yellow-400",
-    processing: "text-sky-400",
-    completed: "text-emerald-400",
-    failed: "text-red-400",
-  };
-  return statusColors[status.toLowerCase()] || "text-white";
 }

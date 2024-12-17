@@ -27,7 +27,7 @@ export default function HowItWorks() {
             </div>
 
             <h1 className="mt-8 bg-gradient-to-b from-white to-white/80 bg-clip-text text-5xl font-bold tracking-tight text-transparent">
-              How SafeReport Works
+              How CaseReport Works
               <span className="mt-4 block bg-gradient-to-r from-sky-400 to-blue-500 bg-clip-text text-2xl text-transparent">
                 Your Safety is Our Priority
               </span>

@@ -221,7 +221,7 @@ export function ReportForm() {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  disabled={isPending}
+                  disabled={isPending || isAnalyzing}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sky-500/40">
@@ -253,7 +253,7 @@ export function ReportForm() {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    disabled={isPending}
+                    disabled={isPending || isAnalyzing}
                     className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
                     placeholder="shadcn"
                     {...field}
@@ -276,7 +276,7 @@ export function ReportForm() {
                 </FormLabel>
                 <FormControl>
                   <Textarea
-                    disabled={isPending}
+                    disabled={isPending || isAnalyzing}
                     className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3.5 text-white transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40"
                     placeholder="Tell us a little bit about yourself"
                     {...field}
@@ -293,7 +293,7 @@ export function ReportForm() {
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || isAnalyzing}
           className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 px-4 py-3.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-sky-400 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <div className="relative flex items-center justify-center gap-2">

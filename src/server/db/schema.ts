@@ -12,6 +12,7 @@ import {
   AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
+import { createId } from "@paralleldrive/cuid2";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -70,12 +71,9 @@ export const users = createTable(
 );
 
 export const reports = createTable("reports", {
-  id: varchar("id", { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  customId: varchar("id", { length: 256 }).primaryKey().$defaultFn(createId),
   title: varchar("title", { length: 255 }).notNull(),
-  description: varchar("description", { length: 255 }).notNull(),
+  description: varchar("description").notNull(),
   reportType: varchar("reportType", { length: 255 }).notNull(),
   location: varchar("location", { length: 255 }),
   latitude: varchar("latitude", { length: 255 }),

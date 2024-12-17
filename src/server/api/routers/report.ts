@@ -22,10 +22,10 @@ export const reportRouter = createTRPCRouter({
         .insert(reports)
         .values({
           title: input.title,
-          description: "This is a description",
+          description: input.description,
           reportType: input.reportType,
         })
-        .returning({ id: reports.id });
+        .returning({ id: reports.customId });
 
       return {
         success: true,
@@ -51,7 +51,7 @@ export const reportRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       const report = await ctx.db.query.reports.findFirst({
-        where: eq(reports.id, input.id),
+        where: eq(reports.customId, input.id),
       });
 
       if (!report) return null;

@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { posts, reports, users } from "~/server/db/schema";
+import { users } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 import {
   createTRPCRouter,
@@ -13,6 +15,20 @@ export const authRouter = createTRPCRouter({
       z.object({ name: z.string(), email: z.string(), password: z.string() }),
     )
     .mutation(async ({ ctx, input }) => {
+      const isExistUser = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.email, input.email));
+      console.log("is exist user", isExistUser);
+
+      if (isExistUser?.length > 0) {
+        console.log("throw this");
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "email already exist",
+        });
+      }
+
       const user = await ctx.db.insert(users).values({
         name: input.name,
         email: input.email,

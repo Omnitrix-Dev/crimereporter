@@ -32,7 +32,7 @@ export function Navbar() {
                   </svg>
                 </div>
                 <span className="text-lg font-semibold text-white">
-                  SafeReport
+                  CaseReport
                 </span>
               </Link>
             </div>
@@ -73,10 +73,13 @@ export function Navbar() {
               >
                 Contact
               </Link>
-              <button className="group flex h-9 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20">
+              <Link
+                href="/login"
+                className="group flex h-9 items-center gap-2 rounded-full bg-red-500/10 pl-4 pr-5 text-sm font-medium text-red-500 ring-1 ring-inset ring-red-500/20 transition-all hover:bg-red-500/20"
+              >
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
                 Emergency: 911
-              </button>
+              </Link>
 
               {/* Mobile Menu Button */}
               <button
