@@ -58,6 +58,7 @@ export default function Login() {
             </Label>
             <div className="mt-1">
               <Input
+                disabled={isLoading}
                 id="email"
                 name="email"
                 type="email"
@@ -80,6 +81,7 @@ export default function Login() {
             </Label>
             <div className="mt-1">
               <Input
+                disabled={isLoading}
                 id="password"
                 name="password"
                 type="password"
